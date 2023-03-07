@@ -1,0 +1,155 @@
+# Boxplot showing miR-216 gene expression
+# Author: Shehbeel Arif
+# Children's Hospital of Philadelphia
+# Script adapted from ALSF's DE Analysis Tutorial (https://alexslemonade.github.io/refinebio-examples/03-rnaseq/differential-expression_rnaseq_01.html)
+
+## LOAD LIBRARIES
+library(dplyr)
+library(stringr)
+library(ggpubr)
+
+## SET DIRECTORIES
+root_dir <- rprojroot::find_root(rprojroot::has_dir(".git"))
+analysis_dir <- file.path(root_dir, "analyses", "03-A1BG-AS1_miR-216-axis")
+
+# Set output directories
+results_dir <- file.path(analysis_dir, "results")
+plots_dir <- file.path(analysis_dir, "plots")
+
+# Make output directories if they don't exist
+if (!dir.exists(results_dir)) {
+  dir.create(results_dir)
+}
+if (!dir.exists(plots_dir)) {
+  dir.create(plots_dir)
+}
+
+# Set input directory
+data_dir <- file.path(root_dir, "data")
+
+# Declare input file paths
+data_file <- file.path(data_dir, "pbta_raw_counts_mirna.rds")
+metadata_file <- file.path(data_dir, "pbta_meta_mirna.rds")
+# Declare output file paths
+miR_216a_3p_bp_pdf <- file.path(plots_dir, "miR-216a_3p_boxplot.pdf")
+miR_216a_5p_bp_pdf <- file.path(plots_dir, "miR-216a_5p_boxplot.pdf")
+miR_216b_3p_bp_pdf <- file.path(plots_dir, "miR-216b_3p_boxplot.pdf")
+miR_216b_5p_bp_pdf <- file.path(plots_dir, "miR-216b_5p_boxplot.pdf")
+
+
+#######
+# Import metadata and data 
+metadata <- readr::read_rds(metadata_file)
+expression_df <- readr::read_rds(data_file)
+
+#######
+## PREPROCESS THE DATA
+df <- expression_df %>%
+  t() %>%
+  as.data.frame() %>%
+  # Convert rownames as a column
+  tibble::rownames_to_column(var = "sample_id") %>%
+  # Remove first four characters in sample_ids
+  mutate(sample_id = str_replace_all(sample_id, "104-", "")) %>%
+  mutate(sample_id = str_replace_all(sample_id, "108-", "")) %>%
+  mutate(sample_id = str_replace_all(sample_id, "112-", "")) %>%
+  # Remove last two characters in sample_ids
+  mutate(sample_id = str_replace_all(sample_id, "_1", "")) %>%
+  # Merge expression and meta data
+  inner_join(metadata, by="sample_id") %>%
+  # Remove unwanted brain tumor types
+  filter(!short_histology %in% c('GNT', 'Schwannoma', 'Teratoma'))
+
+
+## Make box plot with stats
+# miR-216a-3p
+miR_216a_3p_bp <- ggboxplot(df, 
+                            # Specify x values
+                            x = "short_histology",
+                            # Specify y values
+                            y = "`miR-216a-3p`",
+                            # Color in the box plot
+                            fill = "short_histology",
+                            # Specify color palette
+                            palette = "jco", 
+                            # Add x-axis label
+                            xlab="Brain Tumor Type",
+                            # Add y-axis label
+                            ylab="miR-216a-3p Gene Expression",
+                            # Add points
+                            add = "jitter") +
+  # Add p-value
+  stat_compare_means()
+
+# miR-216a-5p
+miR_216a_5p_bp <- ggboxplot(df, 
+                # Specify x values
+                x = "short_histology",
+                # Specify y values
+                y = "`miR-216a-5p`",
+                # Color in the box plot
+                fill = "short_histology",
+                # Specify color palette
+                palette = "jco", 
+                # Add x-axis label
+                xlab="Brain Tumor Type",
+                # Add y-axis label
+                ylab="miR-216a-5p Gene Expression",
+                # Add points
+                add = "jitter") +
+  # Add p-value
+  stat_compare_means()
+
+# miR-216b-3p
+miR_216b_3p_bp <- ggboxplot(df, 
+                            # Specify x values
+                            x = "short_histology",
+                            # Specify y values
+                            y = "`miR-216b-3p`",
+                            # Color in the box plot
+                            fill = "short_histology",
+                            # Specify color palette
+                            palette = "jco", 
+                            # Add x-axis label
+                            xlab="Brain Tumor Type",
+                            # Add y-axis label
+                            ylab="miR-216b-3p Gene Expression",
+                            # Add points
+                            add = "jitter") +
+  # Add p-value
+  stat_compare_means()
+
+# miR-216b-5p
+miR_216b_5p_bp <- ggboxplot(df, 
+                            # Specify x values
+                            x = "short_histology",
+                            # Specify y values
+                            y = "`miR-216b-5p`",
+                            # Color in the box plot
+                            fill = "short_histology",
+                            # Specify color palette
+                            palette = "jco", 
+                            # Add x-axis label
+                            xlab="Brain Tumor Type",
+                            # Add y-axis label
+                            ylab="miR-216b-5p Gene Expression",
+                            # Add points
+                            add = "jitter") +
+  # Add p-value
+  stat_compare_means()
+
+# View boxplots
+print(miR_216a_3p_bp)
+print(miR_216a_5p_bp)
+print(miR_216b_3p_bp)
+print(miR_216b_5p_bp)
+
+# Export plot
+ggsave(miR_216a_3p_bp_pdf, miR_216a_3p_bp, width = 10, height = 6)
+ggsave(miR_216a_5p_bp_pdf, miR_216a_5p_bp, width = 10, height = 6)
+ggsave(miR_216b_3p_bp_pdf, miR_216b_3p_bp, width = 10, height = 6)
+ggsave(miR_216b_5p_bp_pdf, miR_216b_5p_bp, width = 10, height = 6)
+
+
+dev.off()
+

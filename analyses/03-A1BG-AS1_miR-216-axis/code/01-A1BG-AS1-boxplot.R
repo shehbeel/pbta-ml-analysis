@@ -1,4 +1,4 @@
-# Differential Expression Analysis of GNG C1 vs C2 using DESeq2
+# Boxplot showing A1BG-AS1 gene expression
 # Author: Shehbeel Arif
 # Children's Hospital of Philadelphia
 # Script adapted from ALSF's DE Analysis Tutorial (https://alexslemonade.github.io/refinebio-examples/03-rnaseq/differential-expression_rnaseq_01.html)
